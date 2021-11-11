@@ -1,13 +1,11 @@
 import 'package:demoapp/Controllers/auth_controller.dart';
 import 'package:demoapp/Helpers/Constants/constant.dart';
 import 'package:demoapp/Helpers/Constants/constant_widget.dart';
-import 'package:demoapp/Models/user_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sizer/sizer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
-
-final FirebaseAuth _auth = FirebaseAuth.instance;
+import 'package:geolocator/geolocator.dart';
 
 class RegistrationScreen extends StatefulWidget {
   @override
@@ -19,6 +17,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +28,15 @@ class RegistrationScreenState extends State<RegistrationScreen> {
         ),
         body: Center(
           child: Container(
-            width: 500,
+            padding: EdgeInsets.all(2.0.h),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                CustomTextField(
+                    hintText: 'Name',
+                    controller: _nameController,
+                    iconData: Icons.person),
+                SizedBox(height: 20.0),
                 CustomTextField(
                     hintText: 'Email',
                     controller: _emailController,
@@ -43,6 +47,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                     controller: _passwordController,
                     iconData: Icons.password_outlined,
                     obscureText: true),
+                SizedBox(height: 2.0.h),
                 customTextButton(
                     onTap: () async {
                       // uploadImageToFirebase(context);
@@ -56,10 +61,14 @@ class RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   bool _validateField() {
-    if (_emailController.text.isEmpty) {
+    if (_nameController.text.isEmpty) {
+      Get.showSnackbar(Ui.ErrorSnackBar(message: 'Please enter name'));
+      return false;
+    } else if (_emailController.text.isEmpty) {
       Get.showSnackbar(Ui.ErrorSnackBar(message: 'Please enter email address'));
       return false;
-    } else if (_passwordController.text.isEmpty &&
+    }
+    if (_passwordController.text.isEmpty &&
         _passwordController.text.length <= 6) {
       Get.showSnackbar(Ui.ErrorSnackBar(
           message: 'Password should be at least 6 characters'));
@@ -74,19 +83,14 @@ class RegistrationScreenState extends State<RegistrationScreen> {
     if (_validateField()) {
       try {
         showProgressIndicator();
-        UserCredential authResult = await _auth.createUserWithEmailAndPassword(
-            email: _emailController.text, password: _passwordController.text);
-        if (authResult.user != null) {
-          print(authResult.user!.email!);
-          authController.setCurrentUser(
-              user: UserViewModel(
-                  email: authResult.user!.email, userId: authResult.user!.uid));
-        }
-        return null;
-      } on FirebaseAuthException catch (e) {
-        Get.showSnackbar(Ui.ErrorSnackBar(message: e.message));
-        EasyLoading.dismiss();
-        print(e.message);
+        await authController.register({
+          "name": _nameController.text,
+          "email": _emailController.text,
+          "password": _passwordController.text,
+        });
+      } catch (e) {
+        print(e);
+        throw e;
       } finally {
         EasyLoading.dismiss();
       }

@@ -1,8 +1,13 @@
+import 'package:demoapp/Helpers/Constants/constant_widget.dart';
+import 'package:get/get.dart';
+
 class AppException implements Exception {
   final _message;
   final _prefix;
   AppException([this._message, this._prefix]);
   String toString() {
+    Get.showSnackbar(Ui.ErrorSnackBar(message: _message));
+
     return "$_prefix$_message";
   }
 }

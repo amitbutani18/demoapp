@@ -49,7 +49,7 @@ customTextButton(
   return GestureDetector(
     onTap: () => onTap(),
     child: Container(
-      margin: EdgeInsets.symmetric(vertical: 10.6),
+      margin: EdgeInsets.symmetric(vertical: 5.6),
       alignment: Alignment.center,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),

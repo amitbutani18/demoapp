@@ -1,12 +1,11 @@
 import 'package:demoapp/Helpers/Constants/constant.dart';
 import 'package:demoapp/Helpers/Routes/app_routes.dart';
 import 'package:demoapp/Models/user_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 class AuthController extends GetxController {
-  var currentUser = UserViewModel().obs;
+  var currentUser = User().obs;
 
   @override
   void onInit() {
@@ -16,21 +15,42 @@ class AuthController extends GetxController {
     // }
   }
 
-  Future<void> setCurrentUser({
-    UserViewModel? user,
-    bool? isLogin = false,
-  }) async {
-    GetStorage().write(CURRENT_USER, user!.toJson());
-    // Get.log(GetStorage().read(C.currentUser).toString());
+  Future<void> signIn(Map parameter) async {
+    AuthRepository authRepository = AuthRepository();
+    var response = await authRepository.signInApiCall(parameter);
+    await setCurrentUser(user: response.user);
+    if (response.status == true) {
+      Get.offAllNamed(Routes.DASHBOARD);
+    }
+  }
 
-    currentUser.value = UserViewModel.fromJson(user.toJson());
-    Get.offAllNamed(Routes.DASHBOARD);
+  Future<void> register(Map parameter) async {
+    AuthRepository authRepository = AuthRepository();
+    var response = await authRepository.registerApiCall(parameter);
+    await setCurrentUser(user: response.user);
+    if (response.status == true) {
+      Get.offAllNamed(Routes.DASHBOARD);
+    }
+  }
+
+  Future<void> setCurrentUser({User? user}) async {
+    GetStorage().write(CURRENT_USER, user!.toJson());
+    Get.log(GetStorage().read(CURRENT_USER).toString());
+
+    currentUser.value = User.fromJson(user.toJson());
+    print(currentUser.value.email);
+  }
+
+  Future<void> setUserLocation({User? user}) async {
+    GetStorage().write(CURRENT_USER, user!.toJson());
+    Get.log(GetStorage().read(CURRENT_USER).toString());
+
+    currentUser.value = User.fromJson(user.toJson());
+    print(currentUser.value.email);
   }
 
   signOut() async {
-    var firebaseAuth = FirebaseAuth.instance;
     GetStorage().write(CURRENT_USER, null);
-    await firebaseAuth.signOut();
     Get.offAllNamed(Routes.SIGNIN);
   }
 }

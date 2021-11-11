@@ -3,12 +3,10 @@ import 'package:demoapp/Helpers/Constants/constant.dart';
 import 'package:demoapp/Helpers/Constants/constant_widget.dart';
 import 'package:demoapp/Helpers/Routes/app_routes.dart';
 import 'package:demoapp/Models/user_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
-
-final FirebaseAuth _auth = FirebaseAuth.instance;
+import 'package:sizer/sizer.dart';
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -30,7 +28,7 @@ class SignInScreenState extends State<SignInScreen> {
         ),
         body: Center(
           child: Container(
-            width: 500,
+            padding: EdgeInsets.all(2.0.h),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -44,13 +42,15 @@ class SignInScreenState extends State<SignInScreen> {
                     controller: _passwordController,
                     iconData: Icons.password_outlined,
                     obscureText: true),
+                SizedBox(height: 2.0.h),
                 customTextButton(
                     onTap: () async {
                       // uploadImageToFirebase(context);
-                      await _register();
+                      await _signiIn();
                     },
                     btnText: 'Log In'),
                 customTextButton(
+                    color: whiteColor,
                     onTap: () async {
                       Get.toNamed(Routes.REGISTER);
                     },
@@ -74,27 +74,19 @@ class SignInScreenState extends State<SignInScreen> {
     return true;
   }
 
-  Future<void> _register() async {
+  Future<void> _signiIn() async {
     FocusScope.of(context).unfocus();
 
     if (_validateField()) {
       try {
         showProgressIndicator();
-        UserCredential authResult = await _auth.signInWithEmailAndPassword(
-            email: _emailController.text, password: _passwordController.text);
-        if (authResult.user != null) {
-          var controller = Get.put(AuthController());
-          await controller.setCurrentUser(
-              user: UserViewModel(
-                  email: authResult.user!.email, userId: authResult.user!.uid),
-              isLogin: true);
-          Get.offAllNamed(Routes.DASHBOARD);
-        }
-        return null;
-      } on FirebaseAuthException catch (e) {
-        Get.showSnackbar(Ui.ErrorSnackBar(message: e.message));
-        EasyLoading.dismiss();
-        print(e.message);
+        await authController.signIn({
+          "email": _emailController.text,
+          "password": _passwordController.text
+        });
+      } catch (e) {
+        print(e);
+        throw e;
       } finally {
         EasyLoading.dismiss();
       }
